@@ -100,21 +100,27 @@ export function MovingTarget({ target, onHit }: { target: Target; onHit: (id: nu
   return (
     <mesh ref={meshRef} position={target.position} onClick={handleClick} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
       <boxGeometry args={[0.5, 1.5, 0.3]} />
-      <meshStandardMaterial color={hovered ? '#ff4444' : '#666666'} emissive={hovered ? '#ff0000' : '#000000'} emissiveIntensity={hovered ? 0.5 : 0} />
+      <meshStandardMaterial color={hovered ? '#ff6666' : '#ff3333'} emissive={hovered ? '#ff0000' : '#660000'} emissiveIntensity={hovered ? 0.8 : 0.3} />
     </mesh>
   );
 }
 
-export function CameraController({ rotation }: { rotation: { x: number; y: number } }) {
+export function CameraController({ rotation, position }: { rotation: { x: number; y: number }; position: { x: number; z: number } }) {
   const { camera } = useThree();
-  useFrame(() => { camera.rotation.y = rotation.y; camera.rotation.x = rotation.x; });
+  useFrame(() => {
+    camera.rotation.y = rotation.y;
+    camera.rotation.x = rotation.x;
+    camera.position.x = position.x;
+    camera.position.z = position.z;
+  });
   return null;
 }
 
 export function GameScene({ 
   onTargetHit, 
   onBonusCollect,
-  cameraRotation, 
+  cameraRotation,
+  cameraPosition,
   difficulty, 
   currentWeapon, 
   isReloading, 
@@ -128,6 +134,7 @@ export function GameScene({
   onTargetHit: (id: number, position: [number, number, number]) => void;
   onBonusCollect: (id: number, powerupId: number) => void;
   cameraRotation: { x: number; y: number };
+  cameraPosition: { x: number; z: number };
   difficulty: number;
   currentWeapon: typeof WEAPONS[0];
   isReloading: boolean;
@@ -201,11 +208,13 @@ export function GameScene({
 
   return (
     <>
-      <CameraController rotation={cameraRotation} />
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[10, 10, 5]} intensity={0.8} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}><planeGeometry args={[30, 30]} /><meshStandardMaterial color={currentMap.groundColor} /></mesh>
-      <mesh position={[0, 5, -15]}><planeGeometry args={[30, 10]} /><meshStandardMaterial color={currentMap.skyColor} /></mesh>
+      <CameraController rotation={cameraRotation} position={cameraPosition} />
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[10, 10, 5]} intensity={1.2} />
+      <directionalLight position={[-10, 5, -5]} intensity={0.6} />
+      <hemisphereLight args={['#ffffff', currentMap.groundColor, 0.5]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}><planeGeometry args={[50, 50]} /><meshStandardMaterial color={currentMap.groundColor} /></mesh>
+      <mesh position={[0, 10, -20]}><planeGeometry args={[50, 20]} /><meshStandardMaterial color={currentMap.skyColor} side={THREE.DoubleSide} /></mesh>
       {targets.map((target) => <MovingTarget key={target.id} target={target} onHit={handleHit} />)}
       {bonuses.map((bonus) => <BonusPickup key={bonus.id} bonus={bonus} onCollect={handleBonusCollect} />)}
       {muzzleFlashes.map((flash) => <MuzzleFlashEffect key={flash.id} flash={flash} />)}

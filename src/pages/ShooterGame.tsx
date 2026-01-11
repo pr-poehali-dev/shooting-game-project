@@ -23,6 +23,7 @@ export default function ShooterGame() {
   const [reloadProgress, setReloadProgress] = useState(0);
   const [difficulty, setDifficulty] = useState(1);
   const [cameraRotation, setCameraRotation] = useState({ x: 0, y: 0 });
+  const [cameraPosition, setCameraPosition] = useState({ x: 0, z: 5 });
   const [isInspecting, setIsInspecting] = useState(false);
   const [inspectProgress, setInspectProgress] = useState(0);
   const [selectedMapId, setSelectedMapId] = useState(1);
@@ -147,7 +148,11 @@ export default function ShooterGame() {
   };
 
   const handleJoystickMove = (x: number, y: number) => {
-    setCameraRotation((prev) => ({ x: Math.max(-Math.PI / 4, Math.min(Math.PI / 4, prev.x + y * 0.02 * settings.sensitivity)), y: prev.y - x * 0.02 * settings.sensitivity }));
+    const moveSpeed = 0.1 * settings.sensitivity;
+    setCameraPosition((prev) => ({
+      x: Math.max(-8, Math.min(8, prev.x + x * moveSpeed)),
+      z: Math.max(-2, Math.min(10, prev.z - y * moveSpeed))
+    }));
   };
 
   const startGame = (mode: 'classic' | 'survival') => {
@@ -304,8 +309,23 @@ export default function ShooterGame() {
     );
   }
 
+  const handleScreenTouch = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const deltaX = (touch.clientX - centerX) / rect.width;
+      const deltaY = (touch.clientY - centerY) / rect.height;
+      setCameraRotation((prev) => ({
+        x: Math.max(-Math.PI / 3, Math.min(Math.PI / 3, deltaY * Math.PI / 2)),
+        y: deltaX * Math.PI
+      }));
+    }
+  }, []);
+
   return (
-    <div className="h-screen w-full relative bg-black">
+    <div className="h-screen w-full relative bg-black" onTouchMove={handleScreenTouch}>
       <div className="absolute top-4 left-4 z-10 space-y-2">
         <Card className="p-3 bg-gray-900/90 border-yellow-500/50"><div className="text-yellow-400 text-xl font-bold">💰 {money}</div></Card>
         <Card className="p-3 bg-gray-900/90 border-red-500/50"><div className="text-red-400 text-xl font-bold">☠️ {kills}</div></Card>
@@ -376,7 +396,8 @@ export default function ShooterGame() {
         <GameScene 
           onTargetHit={handleTargetHit} 
           onBonusCollect={handleBonusCollect}
-          cameraRotation={cameraRotation} 
+          cameraRotation={cameraRotation}
+          cameraPosition={cameraPosition}
           difficulty={difficulty} 
           currentWeapon={currentWeapon} 
           isReloading={isReloading} 
