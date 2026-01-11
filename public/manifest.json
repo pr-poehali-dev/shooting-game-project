@@ -1,0 +1,20 @@
+{
+  "name": "Shooter 3D - Мобильный тир",
+  "short_name": "Shooter 3D",
+  "description": "Реалистичный 3D тир для Android",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ff4444",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": []
+}
